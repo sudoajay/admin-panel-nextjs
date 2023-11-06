@@ -1,4 +1,9 @@
+import { useEffect } from 'react'
+
 const DefaultPalette = (mode, themeColor) => {
+  useEffect(() => {
+    console.log(mode + ' --- ' + themeColor)
+  }, [])
   // ** Vars
   const lightColor = '58, 53, 65'
   const darkColor = '231, 227, 252'
@@ -15,6 +20,8 @@ const DefaultPalette = (mode, themeColor) => {
       return '#FF8C90'
     } else if (themeColor === 'warning') {
       return '#FFCF5C'
+    } else if (themeColor === 'blue') {
+      return '#1e88e5'
     } else {
       return '#6ACDFF'
     }
