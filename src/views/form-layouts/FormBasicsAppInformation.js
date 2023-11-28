@@ -9,89 +9,120 @@ import Grid from '@mui/material/Grid'
 import Button from '@mui/material/Button'
 import TextField from '@mui/material/TextField'
 import CardHeader from '@mui/material/CardHeader'
-import Dialog from '@mui/material/Dialog'
-import DialogActions from '@mui/material/DialogActions'
-import DialogContent from '@mui/material/DialogContent'
-import DialogContentText from '@mui/material/DialogContentText'
-import DialogTitle from '@mui/material/DialogTitle'
-import Slide from '@mui/material/Slide'
 
 import CardContent from '@mui/material/CardContent'
 import ContentSave from 'mdi-material-ui/ContentSave'
-import Snackbar from '@mui/material/Snackbar'
-import MuiAlert from '@mui/material/Alert'
 
-const Transition = React.forwardRef(function Transition(props, ref) {
-  return <Slide direction='up' ref={ref} {...props} />
-})
-const Alert = React.forwardRef(function Alert(props, ref) {
-  return <MuiAlert elevation={6} ref={ref} variant='filled' {...props} />
-})
+import { styled } from '@mui/material/styles'
+import Typography from '@mui/material/Typography'
+import SnackbarComponent from 'src/layouts/components/SnackbarComponent'
+import DialogComponent from 'src/layouts/components/DialogComponent'
 
-function SlideTransition(props) {
-  return <Slide {...props} direction='down' />
-}
+const ImgStyled = styled('img')(({ theme }) => ({
+  width: 120,
+  height: 120,
+  marginRight: theme.spacing(6.25),
+  borderRadius: theme.shape.borderRadius
+}))
+
+const ButtonStyled = styled(Button)(({ theme }) => ({
+  [theme.breakpoints.down('sm')]: {
+    width: '100%',
+    textAlign: 'center'
+  }
+}))
 const FormBasicsAppInformation = () => {
   const [openSave, setOpenSave] = useState(false)
-  const [getAppTitle, setAppTitle] = useState('')
-  const [getAppDescription, setAppDescription] = useState('')
-  const [getAppKeywords, setAppKeywords] = useState('')
-  const [getMainTitle, setMainTitle] = useState('')
-  const [getMainDescription, setMainDescription] = useState('')
-
-  const [currentGetAppData, currentSetAppData] = useState('')
-
   const [open, setOpen] = useState(false)
   const [showMessage, setMessage] = useState('Only PNG, JPG, JPEG, WebP. Supported')
   const [snackbarType, setSnackbarType] = useState('error')
+  const [mainImage, setMainImage] = useState('')
+  const [imageSaved, setImageSaved] = useState(false)
 
-  const { vertical, horizontal } = {
-    vertical: 'top',
-    horizontal: 'right'
+  const [values, setValues] = useState({
+    ID: '',
+    AppIcon: '',
+    AppTitle: '',
+    AppDescription: '',
+    AppKeywords: '',
+    MainTitle: '',
+    MainDescription: ''
+  })
+
+  const handleChange = prop => event => {
+    setValues({ ...values, [prop]: event.target.value })
+  }
+
+  const handleChangeImage = value => {
+    setValues({ ...values, AppIcon: value })
   }
 
   const handleClick = () => {
     setOpen(true)
   }
 
-  const handleClose = (event, reason) => {
-    if (reason === 'clickaway') {
-      return
+  useEffect(() => {
+    if (imageSaved) postJsonDataAppInformation()
+  }, [values.AppIcon])
+
+  const onChange = event => {
+    const file = event.target.files[0]
+    setImageSaved(false)
+
+    // make your own key on the object instance:
+    imageSaved
+    var ext = file.name.split('.').pop()
+    if (ext !== 'svg' && ext !== 'png' && ext !== 'jpg' && ext !== 'jpeg') {
+      setSnackbarType('error')
+      setMessage('Only PNG, JPG, JPEG Supported')
+      handleClick()
+    } else if (file.size > 1024 * 1024 * 5) {
+      setSnackbarType('error')
+      setMessage('File size limit: 5 MB')
+      handleClick()
+    } else {
+      const reader = new FileReader()
+      reader.onload = () => {
+        handleChangeImage(reader.result)
+      }
+      reader.readAsDataURL(file)
+      setMainImage(file)
     }
 
-    setOpen(false)
+    // const reader = new FileReader()
+    // const { files } = file.target
+    // if (files && files.length !== 0) {
+    //   reader.onload = () => setImgSrc(reader.result)
+    //   reader.readAsDataURL(files[0])
+    // }
   }
-
-  useEffect(() => {
-    setAppTitle(currentGetAppData.AppTitle)
-    setAppDescription(currentGetAppData.AppDescription)
-    setAppKeywords(currentGetAppData.AppKeywords)
-    setMainTitle(currentGetAppData.MainTitle)
-    setMainDescription(currentGetAppData.MainDescription)
-  }, [currentGetAppData])
 
   useEffect(() => {
     getAppInformation()
   }, [])
 
   const handleOnSubmit = () => {
-    if (!getAppTitle || getAppTitle.length == '') {
+    if (values.AppIcon.length == 0) {
+      setSnackbarType('error')
+      setMessage('Please upload the app icon')
+      handleClick()
+    } else if (values.AppTitle.length == 0) {
       setSnackbarType('error')
       setMessage('Please provide the App Title.')
       handleClick()
-    } else if (!getAppDescription || getAppDescription.length == '') {
+    } else if (values.AppDescription.length == 0) {
       setSnackbarType('error')
       setMessage('Please provide the App Description.')
       handleClick()
-    } else if (!getAppKeywords || getAppKeywords.length == '') {
+    } else if (values.AppKeywords.length == 0) {
       setSnackbarType('error')
       setMessage('Please provide the App keywords.')
       handleClick()
-    } else if (!getMainTitle || getMainTitle.length == '') {
+    } else if (values.MainTitle.length == 0) {
       setSnackbarType('error')
       setMessage('Please provide the Main Title.')
       handleClick()
-    } else if (!getMainDescription || getMainDescription.length == '') {
+    } else if (values.MainDescription.length == 0) {
       setSnackbarType('error')
       setMessage('Please provide the Main Description.')
       handleClick()
@@ -102,19 +133,20 @@ const FormBasicsAppInformation = () => {
 
   const handleSaveAppInformation = () => {
     setOpenSave(false)
-    let sendData = {
-      AppTitle: getAppTitle,
-      AppDescription: getAppDescription,
-      AppKeywords: getAppKeywords,
-      MainTitle: getMainTitle,
-      MainDescription: getMainDescription
+
+    if (mainImage.length != '') {
+      const formData = new FormData()
+      formData.append('file', mainImage)
+
+      uploadSingleFile(formData)
+    } else {
+      postJsonDataAppInformation()
     }
-    postJsonDataAppInformation(sendData)
   }
 
   async function getAppInformation() {
     try {
-      const response = await fetch('http://localhost:3002/api/app-information', {
+      const response = await fetch('http://localhost:3002/api/get/app/information', {
         method: 'GET' // *GET, POST, PUT, DELETE, etc.
         // mode: "no-cors", // no-cors, *cors, same-origin
         // cache: "no-cache", // *default, no-cache, reload, force-cache, only-if-cached
@@ -125,16 +157,51 @@ const FormBasicsAppInformation = () => {
       })
 
       const result = await response.json()
-      currentSetAppData(result)
+      setValues(result)
+      console.log(result)
     } catch (error) {
       console.error('Error:', error)
     }
   }
 
-  async function postJsonDataAppInformation(data) {
+  async function uploadSingleFile(formData) {
     try {
-      const response = await fetch('http://localhost:3002/api/set-app-information', {
+      const response = await fetch('http://localhost:3002/api/app/upload', {
         method: 'POST', // *GET, POST, PUT, DELETE, etc.
+        // no-cors, *cors, same-origin
+        // cache: "no-cache", // *default, no-cache, reload, force-cache, only-if-cached
+        // credentials: "include", // include, *same-origin, omit
+        headers: {
+          // 'Content-Type': 'multipart/form-data'
+          //'Content-Type': 'application/json'
+          // 'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        // redirect: "follow", // manual, *follow, error
+        // referrerPolicy: "no-referrer", // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
+        body: formData
+      })
+
+      const result = await response.json()
+      console.log('Success:', result)
+
+      if (result.message) {
+        setImageSaved(true)
+        handleChangeImage(result.filePath)
+        setMainImage('')
+      } else {
+        setSnackbarType('error')
+        setMessage(result.error)
+        handleClick()
+      }
+    } catch (error) {
+      console.error('Error:', error)
+    }
+  }
+
+  async function postJsonDataAppInformation() {
+    try {
+      const response = await fetch('http://localhost:3002/api/set/app/information', {
+        method: 'PUT', // *GET, POST, PUT, DELETE, etc.
         // no-cors, *cors, same-origin
         // cache: "no-cache", // *default, no-cache, reload, force-cache, only-if-cached
         // credentials: "include", // include, *same-origin, omit
@@ -144,11 +211,12 @@ const FormBasicsAppInformation = () => {
         },
         // redirect: "follow", // manual, *follow, error
         // referrerPolicy: "no-referrer", // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
-        body: JSON.stringify(data)
+        body: JSON.stringify(values)
       })
 
       const result = await response.json()
       console.log('Success:', result)
+
       if (result) {
         setSnackbarType('success')
         setMessage('Data saved successfully.')
@@ -165,30 +233,49 @@ const FormBasicsAppInformation = () => {
 
   return (
     <Card>
-      <Snackbar
-        anchorOrigin={{ vertical, horizontal }}
-        open={open}
-        autoHideDuration={3000}
-        onClose={handleClose}
-        TransitionComponent={SlideTransition}
-      >
-        <Alert onClose={handleClose} severity={snackbarType} sx={{ width: '100%' }}>
-          {showMessage}
-        </Alert>
-      </Snackbar>
+      <SnackbarComponent open={open} setOpen={setOpen} snackbarType={snackbarType} showMessage={showMessage} />
+      <DialogComponent
+        openSave={openSave}
+        setOpenSave={setOpenSave}
+        message={' Are you sure you want to add this item to the list? '}
+        handleYes={handleSaveAppInformation}
+      />
       <CardHeader title='App Basic Information' titleTypographyProps={{ variant: 'h6' }} />
       <CardContent>
         <form onSubmit={e => e.preventDefault()}>
           <Grid container spacing={5}>
+            <Grid item xs={12} sx={{ marginTop: 4.8, marginBottom: 3 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <ImgStyled src={values.AppIcon} alt='' />
+                <Box>
+                  <ButtonStyled component='label' variant='contained' htmlFor='account-settings-upload-image'>
+                    Upload App Icon
+                    <input
+                      hidden
+                      type='file'
+                      onChange={onChange}
+                      accept='image/png, image/jpeg,image/jpg, , image/svg'
+                      id='account-settings-upload-image'
+                    />
+                  </ButtonStyled>
+
+                  <Typography variant='body2' sx={{ marginTop: 5 }}>
+                    Supported formats: SVG , PNG, JPG, JPEG. Minimum size: 70x70 pixels. File size limit: 5 MB.
+                  </Typography>
+                  <Typography variant='body2' sx={{}}>
+                    For optimal results, aim for dimensions of at least 260x260 pixels, with a preference for the SVG
+                    format.{' '}
+                  </Typography>
+                </Box>
+              </Box>
+            </Grid>
             <Grid item xs={12}>
               <TextField
                 required
                 fullWidth
                 type='text'
-                value={getAppTitle}
-                onChange={evt => {
-                  setAppTitle(evt.target.value)
-                }}
+                value={values.AppTitle}
+                onChange={handleChange('AppTitle')}
                 label='App Title'
                 placeholder='Regime Fit'
                 helperText='Type your brand name '
@@ -200,10 +287,8 @@ const FormBasicsAppInformation = () => {
                 required
                 fullWidth
                 type='text'
-                value={getAppDescription}
-                onChange={evt => {
-                  setAppDescription(evt.target.value)
-                }}
+                value={values.AppDescription}
+                onChange={handleChange('AppDescription')}
                 label='App Description'
                 placeholder='Get Workout Plans!'
                 helperText='Enter the app description for your SEO metadata.'
@@ -216,10 +301,8 @@ const FormBasicsAppInformation = () => {
                 multiline
                 fullWidth
                 type='text'
-                value={getAppKeywords}
-                onChange={evt => {
-                  setAppKeywords(evt.target.value)
-                }}
+                value={values.AppKeywords}
+                onChange={handleChange('AppKeywords')}
                 label='App Keywords'
                 placeholder='Workout Plan, Transform your life, strength,wellness,self-improvement'
                 helperText='Enter the app Keywords for your SEO metadata.'
@@ -231,10 +314,8 @@ const FormBasicsAppInformation = () => {
                 required
                 fullWidth
                 type='text'
-                value={getMainTitle}
-                onChange={evt => {
-                  setMainTitle(evt.target.value)
-                }}
+                value={values.MainTitle}
+                onChange={handleChange('MainTitle')}
                 label='Main Title'
                 placeholder='Get Workout Plans!'
                 helperText="Enter the brand title you'd like to display on your app's  main homepage"
@@ -246,10 +327,8 @@ const FormBasicsAppInformation = () => {
                 multiline
                 required
                 fullWidth
-                value={getMainDescription}
-                onChange={evt => {
-                  setMainDescription(evt.target.value)
-                }}
+                value={values.MainDescription}
+                onChange={handleChange('MainDescription')}
                 type='text'
                 label='Main Description'
                 placeholder="Unleash your body's power. Transform your life through strength, wellness, and self-improvement. 💪"
@@ -280,25 +359,6 @@ const FormBasicsAppInformation = () => {
                 </Box>
               </Box>
             </Grid>
-
-            <Dialog
-              open={openSave}
-              TransitionComponent={Transition}
-              keepMounted
-              onClose={() => setOpenSave(false)}
-              aria-describedby='alert-dialog-slide-description'
-            >
-              <DialogTitle>{'Confirmation'}</DialogTitle>
-              <DialogContent>
-                <DialogContentText id='alert-dialog-slide-description'>
-                  Are you sure you want to add this item to the list?
-                </DialogContentText>
-              </DialogContent>
-              <DialogActions>
-                <Button onClick={() => setOpenSave(false)}>No</Button>
-                <Button onClick={() => handleSaveAppInformation()}>Yes</Button>
-              </DialogActions>
-            </Dialog>
           </Grid>
         </form>
       </CardContent>

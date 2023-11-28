@@ -6,7 +6,7 @@ import { useState, useEffect } from 'react'
 import DatePickerWrapper from 'src/@core/styles/libs/react-datepicker'
 
 // ** Demo Components Imports
-import FormItemDetails from 'src/views/form-layouts/FormItemDetails'
+import FormFAQDetail from 'src/views/form-layouts/FormFAQDetail'
 import FormAddItems from 'src/views/form-layouts/FormAddItems'
 
 import SnackbarComponent from 'src/layouts/components/SnackbarComponent'
@@ -15,15 +15,15 @@ import SnackbarComponent from 'src/layouts/components/SnackbarComponent'
 import 'react-datepicker/dist/react-datepicker.css'
 export default function FormLayouts() {
   const [getCountItem, setCountItem] = useState(0)
-  const [getItemDetail, setItemDetail] = useState([{}])
+  const [getFAQDetail, setFAQDetail] = useState([{}])
 
   const [open, setOpen] = useState(false)
   const [snackbarType, setSnackbarType] = useState('error')
   const [showMessage, setMessage] = useState('')
-
   const handleClick = () => {
     setOpen(true)
   }
+
   const increment = () => {
     setCountItem(getCountItem + 1)
   }
@@ -32,12 +32,12 @@ export default function FormLayouts() {
   }
 
   useEffect(() => {
-    fetchGetAllItemDetail()
+    fetchGetAllFAQDetail()
   }, [])
 
-  async function fetchGetAllItemDetail() {
+  async function fetchGetAllFAQDetail() {
     try {
-      const response = await fetch('http://localhost:3002/api/get/all/item', {
+      const response = await fetch('http://localhost:3002/api/get/all/faq/', {
         method: 'GET' // *GET, POST, PUT, DELETE, etc.
         // mode: "no-cors", // no-cors, *cors, same-origin
         // cache: "no-cache", // *default, no-cache, reload, force-cache, only-if-cached
@@ -54,33 +54,13 @@ export default function FormLayouts() {
         setMessage(result.Info)
         handleClick()
       } else {
-        setItemDetail(result)
+        setFAQDetail(result)
         setCountItem(result.length)
       }
     } catch (error) {
       console.error('Error:', error)
     }
   }
-
-  // async function deleteItem(index) {
-  //   try {
-  //     const response = await fetch('http://localhost:3002/api/delete/item/' + index, {
-  //       method: 'DELETE' // *GET, POST, PUT, DELETE, etc.
-  //       // mode: "no-cors", // no-cors, *cors, same-origin
-  //       // cache: "no-cache", // *default, no-cache, reload, force-cache, only-if-cached
-  //       // credentials: "include", // include, *same-origin, omit
-
-  //       // redirect: "follow", // manual, *follow, error
-  //       // referrerPolicy: "no-referrer", // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
-  //     })
-
-  //     const result = await response.json()
-  //     if (result) console.log(' sucessfulay delteted')
-  //     window.location.reload()
-  //   } catch (error) {
-  //     console.error('Error:', error)
-  //   }
-  // }
 
   return (
     <DatePickerWrapper>
@@ -92,32 +72,19 @@ export default function FormLayouts() {
           .map(function (v, i) {
             return (
               <Grid item xs={12}>
-                <FormItemDetails number={i + 1} decrement={decrement} getItemDetail={getItemDetail[i]} />
+                <FormFAQDetail number={i + 1} decrement={decrement} getFAQDetail={getFAQDetail[i]} />
               </Grid>
             )
           })}
-        {getCountItem <= 10 ? (
-          <Grid
-            item
-            xs={12}
-            sx={{
-              marginTop: '2em'
-            }}
-          >
-            <FormAddItems increment={increment} text={'Add Item'} />
-          </Grid>
-        ) : (
-          ''
-        )}
-        {/* <Grid item xs={12} md={6}>
-          <FormLayoutsIcons />
-        </Grid> */}
-        {/* <Grid item xs={12}>
-          <FormLayoutsSeparator />
+        <Grid
+          item
+          xs={12}
+          sx={{
+            marginTop: '2em'
+          }}
+        >
+          <FormAddItems increment={increment} text={'Add New FAQ'} />
         </Grid>
-        <Grid item xs={12}>
-          <FormLayoutsAlignment />
-        </Grid> */}
       </Grid>
     </DatePickerWrapper>
   )

@@ -1,5 +1,5 @@
 // ** React Imports
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 // ** Next Imports
 import Link from 'next/link'
@@ -38,6 +38,10 @@ import BlankLayout from 'src/@core/layouts/BlankLayout'
 
 // ** Demo Imports
 import FooterIllustrationsV1 from 'src/views/pages/auth/FooterIllustration'
+import Snackbar from '@mui/material/Snackbar'
+import * as React from 'react'
+import Slide from '@mui/material/Slide'
+import MuiAlert from '@mui/material/Alert'
 
 // ** Styled Components
 const Card = styled(MuiCard)(({ theme }) => ({
@@ -57,7 +61,20 @@ const FormControlLabel = styled(MuiFormControlLabel)(({ theme }) => ({
   }
 }))
 
+const Alert = React.forwardRef(function Alert(props, ref) {
+  return <MuiAlert elevation={6} ref={ref} variant='filled' {...props} />
+})
+function SlideTransition(props) {
+  return <Slide {...props} direction='down' />
+}
+
 const LoginPage = () => {
+  const [getUserName, setUserName] = useState('')
+  const [snackbarType, setSnackbarType] = useState('error')
+  const [showMessage, setMessage] = useState('')
+  const [open, setOpen] = useState(false)
+  const [getRememberMe, setRememberMe] = useState(false)
+
   // ** State
   const [values, setValues] = useState({
     password: '',
@@ -68,6 +85,21 @@ const LoginPage = () => {
   const theme = useTheme()
   const router = useRouter()
 
+  const handleClick = () => {
+    setOpen(true)
+  }
+  const handleClose = (event, reason) => {
+    if (reason === 'clickaway') {
+      return
+    }
+
+    setOpen(false)
+  }
+
+  const { vertical, horizontal } = {
+    vertical: 'top',
+    horizontal: 'right'
+  }
   const handleChange = prop => event => {
     setValues({ ...values, [prop]: event.target.value })
   }
@@ -80,9 +112,65 @@ const LoginPage = () => {
     event.preventDefault()
   }
 
+  const handleLoginButton = () => {
+    let sendData = {
+      UserName: getUserName,
+      Password: values.password,
+      RememberMe: getRememberMe
+    }
+    checkIfLoginMatch(sendData)
+  }
+
+  async function checkIfLoginMatch(data) {
+    try {
+      const response = await fetch('http://localhost:3002/api/admin/login', {
+        method: 'POST', // *GET, POST, PUT, DELETE, etc.
+        // no-cors, *cors, same-origin
+        // cache: "no-cache", // *default, no-cache, reload, force-cache, only-if-cached
+        // credentials: "include", // include, *same-origin, omit
+        mode: 'cors',
+        credentials: 'include',
+
+        headers: {
+          'Content-Type': 'application/json'
+          // 'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        // redirect: "follow", // manual, *follow, error
+        // referrerPolicy: "no-referrer", // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
+        body: JSON.stringify(data)
+      })
+
+      const result = await response.json()
+      console.log('Success:', result)
+      if (result.LoginMatch) {
+        setSnackbarType('success')
+        setMessage('The login details match.')
+        handleClick()
+        router.push('/')
+      } else {
+        setSnackbarType('error')
+        setMessage('The login details do not match.')
+        handleClick()
+      }
+    } catch (error) {
+      console.error('Error:', error)
+    }
+  }
+
   return (
     <Box className='content-center'>
-      <Card sx={{ zIndex: 1 }}>
+      <Snackbar
+        anchorOrigin={{ vertical, horizontal }}
+        open={open}
+        autoHideDuration={3000}
+        onClose={handleClose}
+        TransitionComponent={SlideTransition}
+      >
+        <Alert onClose={handleClose} severity={snackbarType} sx={{ width: '100%' }}>
+          {showMessage}
+        </Alert>
+      </Snackbar>
+      <Card sx={{ zIndex: 1, mb: 30 }}>
         <CardContent sx={{ padding: theme => `${theme.spacing(12, 9, 7)} !important` }}>
           <Box sx={{ mb: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <svg
@@ -164,7 +252,16 @@ const LoginPage = () => {
             <Typography variant='body2'>Please sign-in to your account and start the adventure</Typography>
           </Box>
           <form noValidate autoComplete='off' onSubmit={e => e.preventDefault()}>
-            <TextField autoFocus fullWidth id='email' label='Email' sx={{ marginBottom: 4 }} />
+            <TextField
+              autoFocus
+              fullWidth
+              id='userName'
+              onChange={evt => {
+                setUserName(evt.target.value)
+              }}
+              label='UserName'
+              sx={{ marginBottom: 4 }}
+            />
             <FormControl fullWidth>
               <InputLabel htmlFor='auth-login-password'>Password</InputLabel>
               <OutlinedInput
@@ -190,7 +287,13 @@ const LoginPage = () => {
             <Box
               sx={{ mb: 4, display: 'flex', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'space-between' }}
             >
-              <FormControlLabel control={<Checkbox />} label='Remember Me' />
+              <FormControlLabel
+                control={<Checkbox />}
+                onChange={evt => {
+                  setRememberMe(evt.target.checked)
+                }}
+                label='Remember Me'
+              />
               <Link passHref href='/'>
                 <LinkStyled onClick={e => e.preventDefault()}>Forgot Password?</LinkStyled>
               </Link>
@@ -200,45 +303,10 @@ const LoginPage = () => {
               size='large'
               variant='contained'
               sx={{ marginBottom: 7 }}
-              onClick={() => router.push('/')}
+              onClick={() => handleLoginButton()}
             >
               Login
             </Button>
-            <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'center' }}>
-              <Typography variant='body2' sx={{ marginRight: 2 }}>
-                New on our platform?
-              </Typography>
-              <Typography variant='body2'>
-                <Link passHref href='/pages/register'>
-                  <LinkStyled>Create an account</LinkStyled>
-                </Link>
-              </Typography>
-            </Box>
-            <Divider sx={{ my: 5 }}>or</Divider>
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Link href='/' passHref>
-                <IconButton component='a' onClick={e => e.preventDefault()}>
-                  <Facebook sx={{ color: '#497ce2' }} />
-                </IconButton>
-              </Link>
-              <Link href='/' passHref>
-                <IconButton component='a' onClick={e => e.preventDefault()}>
-                  <Twitter sx={{ color: '#1da1f2' }} />
-                </IconButton>
-              </Link>
-              <Link href='/' passHref>
-                <IconButton component='a' onClick={e => e.preventDefault()}>
-                  <Github
-                    sx={{ color: theme => (theme.palette.mode === 'light' ? '#272727' : theme.palette.grey[300]) }}
-                  />
-                </IconButton>
-              </Link>
-              <Link href='/' passHref>
-                <IconButton component='a' onClick={e => e.preventDefault()}>
-                  <Google sx={{ color: '#db4437' }} />
-                </IconButton>
-              </Link>
-            </Box>
           </form>
         </CardContent>
       </Card>

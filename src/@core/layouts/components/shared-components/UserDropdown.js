@@ -64,6 +64,34 @@ const UserDropdown = () => {
     }
   }
 
+  async function destorySessionLogout() {
+    try {
+      const response = await fetch('http://localhost:3002/api/admin/logout', {
+        method: 'GET', // *GET, POST, PUT, DELETE, etc.
+        mode: 'cors',
+        // no-cors, *cors, same-origin
+        // cache: "no-cache", // *default, no-cache, reload, force-cache, only-if-cached
+        // credentials: "include", // include, *same-origin, omit
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+          // 'Content-Type': 'application/x-www-form-urlencoded',
+        }
+        // redirect: "follow", // manual, *follow, error
+        // referrerPolicy: "no-referrer", // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
+      })
+
+      const result = await response.json()
+      console.log('Logout:', result)
+
+      if (result) {
+        handleDropdownClose('/pages/login')
+      }
+    } catch (error) {
+      console.error('Error:', error)
+    }
+  }
+
   return (
     <Fragment>
       <Badge
@@ -144,7 +172,7 @@ const UserDropdown = () => {
           </Box>
         </MenuItem>
         <Divider />
-        <MenuItem sx={{ py: 2 }} onClick={() => handleDropdownClose('/pages/login')}>
+        <MenuItem sx={{ py: 2 }} onClick={() => destorySessionLogout()}>
           <LogoutVariant sx={{ marginRight: 2, fontSize: '1.375rem', color: 'text.secondary' }} />
           Logout
         </MenuItem>

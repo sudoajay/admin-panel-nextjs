@@ -9,6 +9,10 @@ import CreditCardOutline from 'mdi-material-ui/CreditCardOutline'
 import AccountPlusOutline from 'mdi-material-ui/AccountPlusOutline'
 import AlertCircleOutline from 'mdi-material-ui/AlertCircleOutline'
 import GoogleCirclesExtended from 'mdi-material-ui/GoogleCirclesExtended'
+import Quiz from 'mdi-material-ui/FrequentlyAskedQuestions'
+
+import ApplicationEdit from 'mdi-material-ui/ApplicationEdit'
+
 import Apps from 'mdi-material-ui/Apps'
 import Details from 'mdi-material-ui/Details'
 
@@ -29,13 +33,19 @@ const navigation = () => {
     },
     {
       icon: Apps,
-      title: 'App Information',
+      title: 'App Info',
       path: '/app-information'
     },
+
     {
-      icon: Details,
+      icon: GoogleCirclesExtended,
       title: 'Item Details',
       path: '/item-details'
+    },
+    {
+      icon: Quiz,
+      title: 'Item FAQ',
+      path: '/item-faq'
     },
     {
       sectionTitle: 'Pages'

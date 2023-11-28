@@ -13,38 +13,23 @@ import CardContent from '@mui/material/CardContent'
 
 import FileNameTypography from './FileNameTypography'
 import * as React from 'react'
-import Snackbar from '@mui/material/Snackbar'
-import MuiAlert from '@mui/material/Alert'
-import Slide from '@mui/material/Slide'
 
-const Alert = React.forwardRef(function Alert(props, ref) {
-  return <MuiAlert elevation={6} ref={ref} variant='filled' {...props} />
-})
+import SnackbarComponent from 'src/layouts/components/SnackbarComponent'
 
-function SlideTransition(props) {
-  return <Slide {...props} direction='down' />
-}
-
-export default function MultipleUploadButtons({ number, upadteImages, onDelete, imageNameArr, imageSizeArr }) {
+export default function MultipleUploadButtons({
+  number,
+  upadteImages,
+  onDelete,
+  imageNameArr,
+  imageSizeArr,
+  setImageSaved
+}) {
   const [open, setOpen] = useState(false)
   const [showMessage, setMessage] = useState('Only PNG, JPG, JPEG, WebP. Supported')
   const [snackbarType, setSnackbarType] = useState('error')
 
-  const { vertical, horizontal } = {
-    vertical: 'top',
-    horizontal: 'right'
-  }
-
   const handleClick = () => {
     setOpen(true)
-  }
-
-  const handleClose = (event, reason) => {
-    if (reason === 'clickaway') {
-      return
-    }
-
-    setOpen(false)
   }
 
   const handleMultipleFileUpload = event => {
@@ -52,6 +37,7 @@ export default function MultipleUploadButtons({ number, upadteImages, onDelete, 
       arrFileSize = [],
       arrFile = []
     upadteImages(arrFileName, arrFileSize, arrFile)
+    setImageSaved(false)
 
     Array.from(event.target.files).map((file, index) => {
       let suffix = 'bytes'
@@ -89,17 +75,8 @@ export default function MultipleUploadButtons({ number, upadteImages, onDelete, 
 
   return (
     <Container maxWidth='none' sx={{ mt: 0, marginTop: 1 }}>
-      <Snackbar
-        anchorOrigin={{ vertical, horizontal }}
-        open={open}
-        autoHideDuration={3000}
-        onClose={handleClose}
-        TransitionComponent={SlideTransition}
-      >
-        <Alert onClose={handleClose} severity={snackbarType} sx={{ width: '100%' }}>
-          {showMessage}
-        </Alert>
-      </Snackbar>
+      <SnackbarComponent open={open} setOpen={setOpen} snackbarType={snackbarType} showMessage={showMessage} />
+
       <CardContent
         sx={{
           borderRadius: '8px',
@@ -134,7 +111,7 @@ export default function MultipleUploadButtons({ number, upadteImages, onDelete, 
             multiple
             id={'upload-multipleImage' + number}
             hidden
-            accept='image/*'
+            accept='image/png, image/jpeg,image/jpg,image/webp'
             type='file'
             onChange={handleMultipleFileUpload}
           />

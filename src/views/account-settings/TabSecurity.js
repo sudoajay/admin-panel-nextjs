@@ -1,5 +1,5 @@
 // ** React Imports
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 // ** MUI Imports
 import Box from '@mui/material/Box'
@@ -14,65 +14,130 @@ import CardContent from '@mui/material/CardContent'
 import FormControl from '@mui/material/FormControl'
 import OutlinedInput from '@mui/material/OutlinedInput'
 import InputAdornment from '@mui/material/InputAdornment'
-
+import Tooltip from '@mui/material/Tooltip'
 // ** Icons Imports
 import EyeOutline from 'mdi-material-ui/EyeOutline'
 import KeyOutline from 'mdi-material-ui/KeyOutline'
 import EyeOffOutline from 'mdi-material-ui/EyeOffOutline'
 import LockOpenOutline from 'mdi-material-ui/LockOpenOutline'
+import SnackbarComponent from 'src/layouts/components/SnackbarComponent'
+import DialogComponent from 'src/layouts/components/DialogComponent'
 
-const TabSecurity = () => {
+const TabSecurity = ({ getUserInfo }) => {
   // ** States
+  const [showMessage, setMessage] = useState('Only PNG, JPG, JPEG, WebP. Supported')
+  const [snackbarType, setSnackbarType] = useState('error')
+  const [open, setOpen] = useState(false)
+  const [openSave, setOpenSave] = useState(false)
+
   const [values, setValues] = useState({
     newPassword: '',
     currentPassword: '',
     showNewPassword: false,
     confirmNewPassword: '',
     showCurrentPassword: false,
-    showConfirmNewPassword: false
+    showConfirmNewPassword: false,
+    newPasswordSaved: false
   })
 
+  const [newUserInfo, setNewUserInfo] = useState(getUserInfo)
+
+  useEffect(() => {
+    if (getUserInfo != undefined) setNewUserInfo(getUserInfo)
+  }, [getUserInfo])
+
+  useEffect(() => {
+    if (values.newPasswordSaved) postJsonDataAccount(newUserInfo)
+  }, [newUserInfo.PassWord])
+
   // Handle Current Password
-  const handleCurrentPasswordChange = prop => event => {
+  const handleChange = prop => event => {
     setValues({ ...values, [prop]: event.target.value })
   }
 
-  const handleClickShowCurrentPassword = () => {
-    setValues({ ...values, showCurrentPassword: !values.showCurrentPassword })
+  const handleClickShow = prop => {
+    setValues({ ...values, [prop]: !values[prop] })
   }
 
-  const handleMouseDownCurrentPassword = event => {
+  const handleMouseDown = event => {
     event.preventDefault()
   }
-
-  // Handle New Password
-  const handleNewPasswordChange = prop => event => {
-    setValues({ ...values, [prop]: event.target.value })
+  const handleClick = () => {
+    setOpen(true)
   }
 
-  const handleClickShowNewPassword = () => {
-    setValues({ ...values, showNewPassword: !values.showNewPassword })
+  const handleOnSubmit = () => {
+    if (values.currentPassword.length == 0 || values.currentPassword != getUserInfo.PassWord) {
+      setSnackbarType('error')
+      setMessage('The Entered Current Password Is Incorrect.')
+      handleClick()
+    } else if (values.newPassword.length == 0) {
+      setSnackbarType('error')
+      setMessage('Kindly Enter The New Password.')
+      handleClick()
+    } else if (values.confirmNewPassword.length == 0) {
+      setSnackbarType('error')
+      setMessage('Kindly Enter The Confirm New Password.')
+      handleClick()
+    } else if (values.newPassword != values.confirmNewPassword) {
+      setSnackbarType('error')
+      setMessage('Mismatch: The New Password And The Confirmation Differ.')
+      handleClick()
+    } else {
+      setValues({ ...values, newPasswordSaved: true })
+
+      setOpenSave(true)
+    }
   }
 
-  const handleMouseDownNewPassword = event => {
-    event.preventDefault()
+  const handleSaveAccountPassword = () => {
+    setOpenSave(false)
+    setNewUserInfo({ ...newUserInfo, PassWord: values.confirmNewPassword })
   }
 
-  // Handle Confirm New Password
-  const handleConfirmNewPasswordChange = prop => event => {
-    setValues({ ...values, [prop]: event.target.value })
-  }
+  async function postJsonDataAccount(value) {
+    try {
+      const response = await fetch('http://localhost:3002/api/admin/update/user', {
+        method: 'PUT', // *GET, POST, PUT, DELETE, etc.
+        // no-cors, *cors, same-origin
+        // cache: "no-cache", // *default, no-cache, reload, force-cache, only-if-cached
+        // credentials: "include", // include, *same-origin, omit
+        headers: {
+          'Content-Type': 'application/json'
+          // 'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        // redirect: "follow", // manual, *follow, error
+        // referrerPolicy: "no-referrer", // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
+        body: JSON.stringify(value)
+      })
 
-  const handleClickShowConfirmNewPassword = () => {
-    setValues({ ...values, showConfirmNewPassword: !values.showConfirmNewPassword })
-  }
+      const result = await response.json()
+      console.log('Success:', result)
 
-  const handleMouseDownConfirmNewPassword = event => {
-    event.preventDefault()
+      if (result) {
+        setSnackbarType('success')
+        setMessage('Your Information Has Been Successfully Saved.')
+        handleClick()
+        window.location.reload()
+      } else {
+        setSnackbarType('error')
+        setMessage("An error occurred, and the data couldn't be saved successfully")
+        handleClick()
+      }
+    } catch (error) {
+      console.error('Error:', error)
+    }
   }
 
   return (
-    <form>
+    <form enctype='multipart/form-data' onSubmit={e => e.preventDefault()}>
+      <SnackbarComponent open={open} setOpen={setOpen} snackbarType={snackbarType} showMessage={showMessage} />
+      <DialogComponent
+        openSave={openSave}
+        setOpenSave={setOpenSave}
+        message={'Are you sure you want to change your password?'}
+        handleYes={handleSaveAccountPassword}
+      />
       <CardContent sx={{ paddingBottom: 0 }}>
         <Grid container spacing={5}>
           <Grid item xs={12} sm={6}>
@@ -85,14 +150,14 @@ const TabSecurity = () => {
                     value={values.currentPassword}
                     id='account-settings-current-password'
                     type={values.showCurrentPassword ? 'text' : 'password'}
-                    onChange={handleCurrentPasswordChange('currentPassword')}
+                    onChange={handleChange('currentPassword')}
                     endAdornment={
                       <InputAdornment position='end'>
                         <IconButton
                           edge='end'
                           aria-label='toggle password visibility'
-                          onClick={handleClickShowCurrentPassword}
-                          onMouseDown={handleMouseDownCurrentPassword}
+                          onClick={() => handleClickShow('showCurrentPassword')}
+                          onMouseDown={handleMouseDown}
                         >
                           {values.showCurrentPassword ? <EyeOutline /> : <EyeOffOutline />}
                         </IconButton>
@@ -109,15 +174,15 @@ const TabSecurity = () => {
                     label='New Password'
                     value={values.newPassword}
                     id='account-settings-new-password'
-                    onChange={handleNewPasswordChange('newPassword')}
+                    onChange={handleChange('newPassword')}
                     type={values.showNewPassword ? 'text' : 'password'}
                     endAdornment={
                       <InputAdornment position='end'>
                         <IconButton
                           edge='end'
-                          onClick={handleClickShowNewPassword}
+                          onMouseDown={handleMouseDown}
                           aria-label='toggle password visibility'
-                          onMouseDown={handleMouseDownNewPassword}
+                          onClick={() => handleClickShow('showNewPassword')}
                         >
                           {values.showNewPassword ? <EyeOutline /> : <EyeOffOutline />}
                         </IconButton>
@@ -135,14 +200,14 @@ const TabSecurity = () => {
                     value={values.confirmNewPassword}
                     id='account-settings-confirm-new-password'
                     type={values.showConfirmNewPassword ? 'text' : 'password'}
-                    onChange={handleConfirmNewPasswordChange('confirmNewPassword')}
+                    onChange={handleChange('confirmNewPassword')}
                     endAdornment={
                       <InputAdornment position='end'>
                         <IconButton
                           edge='end'
                           aria-label='toggle password visibility'
-                          onClick={handleClickShowConfirmNewPassword}
-                          onMouseDown={handleMouseDownConfirmNewPassword}
+                          onMouseDown={handleMouseDown}
+                          onClick={() => handleClickShow('showConfirmNewPassword')}
                         >
                           {values.showConfirmNewPassword ? <EyeOutline /> : <EyeOffOutline />}
                         </IconButton>
@@ -165,7 +230,7 @@ const TabSecurity = () => {
         </Grid>
       </CardContent>
 
-      <Divider sx={{ margin: 0 }} />
+      <Divider sx={{ marginTop: 0 }} />
 
       <CardContent>
         <Box sx={{ mt: 1.75, display: 'flex', alignItems: 'center' }}>
@@ -194,24 +259,43 @@ const TabSecurity = () => {
             </Typography>
             <Typography variant='body2'>
               Two-factor authentication adds an additional layer of security to your account by requiring more than just
-              a password to log in. Learn more.
+              a password to log in.
             </Typography>
+            <Tooltip title='Coming Soon' arrow>
+              <Button>Learn more</Button>
+            </Tooltip>
           </Box>
         </Box>
 
-        <Box sx={{ mt: 11 }}>
-          <Button variant='contained' sx={{ marginRight: 3.5 }}>
-            Save Changes
-          </Button>
-          <Button
-            type='reset'
-            variant='outlined'
-            color='secondary'
-            onClick={() => setValues({ ...values, currentPassword: '', newPassword: '', confirmNewPassword: '' })}
+        <Grid item xs={12}>
+          <Box
+            sx={{
+              gap: 0,
+              marginTop: '1rem',
+              display: 'flex',
+              flexWrap: 'wrap',
+              alignItems: 'center',
+              justifyContent: 'start'
+            }}
           >
-            Reset
-          </Button>
-        </Box>
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <Button variant='contained' type='submit' sx={{ marginRight: 3.5 }} onClick={() => handleOnSubmit()}>
+                Save Changes
+              </Button>
+            </Box>
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <Button
+                type='reset'
+                onClick={() => setValues({ ...values, currentPassword: '', newPassword: '', confirmNewPassword: '' })}
+                sx={{ marginRight: 3.5 }}
+                variant='outlined'
+                color='secondary'
+              >
+                Reset
+              </Button>
+            </Box>
+          </Box>
+        </Grid>
       </CardContent>
     </form>
   )

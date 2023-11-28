@@ -8,37 +8,16 @@ import { Container } from '@mui/material'
 // ** Icons Imports
 import CloudUpload from 'mdi-material-ui/CloudUpload'
 import * as React from 'react'
-import Snackbar from '@mui/material/Snackbar'
-import MuiAlert from '@mui/material/Alert'
-import Slide from '@mui/material/Slide'
-const Alert = React.forwardRef(function Alert(props, ref) {
-  return <MuiAlert elevation={6} ref={ref} variant='filled' {...props} />
-})
 
-function SlideTransition(props) {
-  return <Slide {...props} direction='down' />
-}
+import SnackbarComponent from 'src/layouts/components/SnackbarComponent'
 
 export default function SingleUploadButtons({ number, upadteMainImage, mainImageName }) {
   const [open, setOpen] = useState(false)
   const [showMessage, setMessage] = useState('Only PNG, JPG, JPEG, WebP. Supported')
   const [snackbarType, setSnackbarType] = useState('error')
 
-  const { vertical, horizontal } = {
-    vertical: 'top',
-    horizontal: 'right'
-  }
-
   const handleClick = () => {
     setOpen(true)
-  }
-
-  const handleClose = (event, reason) => {
-    if (reason === 'clickaway') {
-      return
-    }
-
-    setOpen(false)
   }
 
   const handleFileUpload = event => {
@@ -56,29 +35,14 @@ export default function SingleUploadButtons({ number, upadteMainImage, mainImage
       setMessage('File size limit: 5 MB')
       handleClick()
     } else {
-      // const formData = new FormData()
-      // formData.append('file', file)
-      // formData.append('fileName', file.name)
-      // formData.append('number', number)
-      // uploadSingleFile(formData)
-
       upadteMainImage(file)
     }
   }
 
   return (
     <Container maxWidth='none' sx={{ mt: 0 }}>
-      <Snackbar
-        anchorOrigin={{ vertical, horizontal }}
-        open={open}
-        autoHideDuration={3000}
-        onClose={handleClose}
-        TransitionComponent={SlideTransition}
-      >
-        <Alert onClose={handleClose} severity={snackbarType} sx={{ width: '100%' }}>
-          {showMessage}
-        </Alert>
-      </Snackbar>
+      <SnackbarComponent open={open} setOpen={setOpen} snackbarType={snackbarType} showMessage={showMessage} />
+
       <Stack direction='row' alignItems='' spacing={2} sx={{ height: 50, marginBottom: '1rem' }}>
         <TextField
           type='text'
@@ -96,9 +60,14 @@ export default function SingleUploadButtons({ number, upadteMainImage, mainImage
             Upload Main Image
           </Button>
 
-          <input id={'upload-image' + number} hidden accept='image/*' type='file' onChange={handleFileUpload} />
+          <input
+            id={'upload-image' + number}
+            hidden
+            accept='image/png, image/jpeg,image/jpg,image/webp'
+            type='file'
+            onChange={handleFileUpload}
+          />
         </label>
-        {/* {imageUrl && <img src={imageUrl} alt='Uploaded Image' height='300' />} */}
       </Stack>
     </Container>
   )

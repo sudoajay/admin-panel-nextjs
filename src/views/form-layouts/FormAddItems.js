@@ -18,7 +18,7 @@ import Avatar from '@mui/material/Avatar'
 // ** Icons Imports
 import Plus from 'mdi-material-ui/Plus'
 
-export default function FormAddItems({ increment }) {
+export default function FormAddItems({ increment, text }) {
   return (
     <Card>
       <CardHeader title='' titleTypographyProps={{ variant: 'h6' }} />
@@ -44,7 +44,7 @@ export default function FormAddItems({ increment }) {
                     size='large'
                     startIcon={<Plus sx={{ fontSize: '2rem' }} />}
                   >
-                    Add Item
+                    {text}
                   </Button>
                 </Box>
               </Box>
