@@ -36,7 +36,6 @@ export default function MultipleUploadButtons({
     let arrFileName = [],
       arrFileSize = [],
       arrFile = []
-    upadteImages(arrFileName, arrFileSize, arrFile)
     setImageSaved(false)
 
     Array.from(event.target.files).map((file, index) => {

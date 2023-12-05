@@ -9,7 +9,8 @@ import CreditCardOutline from 'mdi-material-ui/CreditCardOutline'
 import AccountPlusOutline from 'mdi-material-ui/AccountPlusOutline'
 import AlertCircleOutline from 'mdi-material-ui/AlertCircleOutline'
 import GoogleCirclesExtended from 'mdi-material-ui/GoogleCirclesExtended'
-import Quiz from 'mdi-material-ui/FrequentlyAskedQuestions'
+import FrequentlyAskedQuestions from 'mdi-material-ui/FrequentlyAskedQuestions'
+import ChartLineVariant from 'mdi-material-ui/ChartLineVariant'
 
 import ApplicationEdit from 'mdi-material-ui/ApplicationEdit'
 
@@ -24,9 +25,9 @@ const navigation = () => {
       path: '/'
     },
     {
-      title: 'Account Settings',
-      icon: AccountCogOutline,
-      path: '/account-settings'
+      title: 'Show Data',
+      icon: ChartLineVariant,
+      path: '/show-data'
     },
     {
       sectionTitle: 'App'
@@ -43,7 +44,7 @@ const navigation = () => {
       path: '/item-details'
     },
     {
-      icon: Quiz,
+      icon: FrequentlyAskedQuestions,
       title: 'Item FAQ',
       path: '/item-faq'
     },
@@ -64,6 +65,14 @@ const navigation = () => {
       title: 'Error',
       icon: AlertCircleOutline,
       path: '/pages/error'
+    },
+    {
+      sectionTitle: 'User Setting'
+    },
+    {
+      title: 'Account Settings',
+      icon: AccountCogOutline,
+      path: '/account-settings'
     },
     {
       sectionTitle: 'User Interface'
