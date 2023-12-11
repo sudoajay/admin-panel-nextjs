@@ -459,11 +459,12 @@ export default function EnhancedTable({
   heading,
   rows,
   columns,
-  deleteData,
   selectedID,
   setSelectedID,
   restart,
-  updateData
+  createData,
+  updateData,
+  deleteData
 }) {
   const [order, setOrder] = React.useState('asc')
   const [orderBy, setOrderBy] = React.useState('ID')
@@ -488,7 +489,7 @@ export default function EnhancedTable({
   }, [rows])
 
   const handleAddItem = () => {
-    setSelectedID(parseInt(rows[rows.length - 1]['ID']) + 1)
+    setSelectedID(-1)
 
     setOpenEditBox(true)
   }
@@ -574,7 +575,9 @@ export default function EnhancedTable({
   }
 
   const handleSaveAppInformation = () => {
-    updateData(editData)
+    if (editData['Created'] == 'Now Time') createData(editData)
+    else updateData(editData)
+
     setOpenSave(false)
   }
 

@@ -38,32 +38,6 @@ const ShowData = () => {
     fetchGetAllPaymentData()
   }, [])
 
-  async function fetchGetAllPaymentFormData() {
-    try {
-      const response = await fetch('http://localhost:3002/api/get/all/paymentform', {
-        method: 'GET' // *GET, POST, PUT, DELETE, etc.
-        // mode: "no-cors", // no-cors, *cors, same-origin
-        // cache: "no-cache", // *default, no-cache, reload, force-cache, only-if-cached
-        // credentials: "include", // include, *same-origin, omit
-
-        // redirect: "follow", // manual, *follow, error
-        // referrerPolicy: "no-referrer", // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
-      })
-
-      const result = await response.json()
-      if (result.Info) {
-        setSnackbarType('error')
-        setMessage(result.Info)
-        handleClick()
-      } else {
-        setPaymentFormData(result)
-        setPaymentFormOnlyKey(Object.keys(result[0]))
-      }
-    } catch (error) {
-      console.error('Error:', error)
-    }
-  }
-
   async function fetchGetAllPaymentData() {
     try {
       const response = await fetch('http://localhost:3002/api/get/all/payment', {
@@ -84,6 +58,68 @@ const ShowData = () => {
       } else {
         setPaymentData(result)
         setPaymentOnlyKey(Object.keys(result[0]))
+      }
+    } catch (error) {
+      console.error('Error:', error)
+    }
+  }
+  async function createPayment(data) {
+    try {
+      const response = await fetch('http://localhost:3002/api/payment', {
+        method: 'POST', // *GET, POST, PUT, DELETE, etc.
+        // mode: "no-cors", // no-cors, *cors, same-origin
+        // cache: "no-cache", // *default, no-cache, reload, force-cache, only-if-cached
+        // credentials: "include", // include, *same-origin, omit
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        // redirect: "follow", // manual, *follow, error
+        // referrerPolicy: "no-referrer", // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
+        body: JSON.stringify(data)
+      })
+
+      const result = await response.json()
+      if (result) {
+        let arr = getPaymentData
+        setPaymentData([])
+
+        arr.push(data)
+        setPaymentData(arr)
+
+        dataDeltedOrEdited(true)
+
+        // window.location.reload()
+      } else {
+        somethingError()
+      }
+    } catch (error) {
+      console.error('Error:', error)
+    }
+  }
+
+  async function updateDataPayment(data) {
+    try {
+      const response = await fetch('http://localhost:3002/api/update/payment/' + selectedID, {
+        method: 'PUT', // *GET, POST, PUT, DELETE, etc.
+        // mode: "no-cors", // no-cors, *cors, same-origin
+        // cache: "no-cache", // *default, no-cache, reload, force-cache, only-if-cached
+        // credentials: "include", // include, *same-origin, omit
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        // redirect: "follow", // manual, *follow, error
+        // referrerPolicy: "no-referrer", // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
+        body: JSON.stringify(data)
+      })
+
+      const result = await response.json()
+      if (result) {
+        setPaymentData([])
+        setPaymentData(getPaymentData.map(item => (item.ID === selectedID ? data : item)))
+        dataDeltedOrEdited(true)
+        // window.location.reload()
+      } else {
+        somethingError()
       }
     } catch (error) {
       console.error('Error:', error)
@@ -115,11 +151,10 @@ const ShowData = () => {
       console.error('Error:', error)
     }
   }
-
-  async function deleteDataFromPaymentForm() {
+  async function fetchGetAllPaymentFormData() {
     try {
-      const response = await fetch('http://localhost:3002/api/delete/paymentform/' + selectedID, {
-        method: 'DELETE' // *GET, POST, PUT, DELETE, etc.
+      const response = await fetch('http://localhost:3002/api/get/all/payment/form', {
+        method: 'GET' // *GET, POST, PUT, DELETE, etc.
         // mode: "no-cors", // no-cors, *cors, same-origin
         // cache: "no-cache", // *default, no-cache, reload, force-cache, only-if-cached
         // credentials: "include", // include, *same-origin, omit
@@ -129,10 +164,43 @@ const ShowData = () => {
       })
 
       const result = await response.json()
+      if (result.Info) {
+        setSnackbarType('error')
+        setMessage(result.Info)
+        handleClick()
+      } else {
+        setPaymentFormData(result)
+        setPaymentFormOnlyKey(Object.keys(result[0]))
+      }
+    } catch (error) {
+      console.error('Error:', error)
+    }
+  }
+
+  async function createPaymentForm(data) {
+    try {
+      const response = await fetch('http://localhost:3002/api/payment/form', {
+        method: 'POST', // *GET, POST, PUT, DELETE, etc.
+        // mode: "no-cors", // no-cors, *cors, same-origin
+        // cache: "no-cache", // *default, no-cache, reload, force-cache, only-if-cached
+        // credentials: "include", // include, *same-origin, omit
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        // redirect: "follow", // manual, *follow, error
+        // referrerPolicy: "no-referrer", // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
+        body: JSON.stringify(data)
+      })
+
+      const result = await response.json()
       if (result) {
+        let arr = getPaymentFormData
         setPaymentFormData([])
-        setPaymentFormData(getPaymentFormData.filter(item => item.ID !== selectedID))
-        dataDeltedOrEdited(false)
+
+        arr.push(data)
+        setPaymentFormData(arr)
+
+        dataDeltedOrEdited(true)
 
         // window.location.reload()
       } else {
@@ -145,7 +213,7 @@ const ShowData = () => {
 
   async function updateDataPaymentForm(data) {
     try {
-      const response = await fetch('http://localhost:3002/api/set/paymentform/' + selectedID, {
+      const response = await fetch('http://localhost:3002/api/update/payment/form/' + selectedID, {
         method: 'PUT', // *GET, POST, PUT, DELETE, etc.
         // mode: "no-cors", // no-cors, *cors, same-origin
         // cache: "no-cache", // *default, no-cache, reload, force-cache, only-if-cached
@@ -182,35 +250,24 @@ const ShowData = () => {
     }
   }
 
-  async function updateDataPayment(data) {
+  async function deleteDataFromPaymentForm() {
     try {
-      const response = await fetch('http://localhost:3002/api/set/payment/' + selectedID, {
-        method: 'PUT', // *GET, POST, PUT, DELETE, etc.
+      const response = await fetch('http://localhost:3002/api/delete/payment/form/' + selectedID, {
+        method: 'DELETE' // *GET, POST, PUT, DELETE, etc.
         // mode: "no-cors", // no-cors, *cors, same-origin
         // cache: "no-cache", // *default, no-cache, reload, force-cache, only-if-cached
         // credentials: "include", // include, *same-origin, omit
-        headers: {
-          'Content-Type': 'application/json'
-        },
+
         // redirect: "follow", // manual, *follow, error
         // referrerPolicy: "no-referrer", // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
-        body: JSON.stringify(data)
       })
 
       const result = await response.json()
       if (result) {
-        if (data['Created'] == 'Now Time') {
-          let arr = getPaymentData
-          setPaymentData([])
+        setPaymentFormData([])
+        setPaymentFormData(getPaymentFormData.filter(item => item.ID !== selectedID))
+        dataDeltedOrEdited(false)
 
-          arr.push(data)
-          setPaymentData(arr)
-        } else {
-          setPaymentData([])
-          setPaymentData(getPaymentData.map(item => (item.ID === selectedID ? data : item)))
-        }
-
-        dataDeltedOrEdited(true)
         // window.location.reload()
       } else {
         somethingError()
@@ -253,11 +310,12 @@ const ShowData = () => {
             heading={'Payment Data '}
             rows={getPaymentData}
             columns={getPaymentOnlyKey}
-            deleteData={deleteDataFromPayment}
             selectedID={selectedID}
             setSelectedID={setSelectedID}
             restart={restartThePayment}
+            createData={createPayment}
             updateData={updateDataPayment}
+            deleteData={deleteDataFromPayment}
           />
         </Grid>
         <Grid item xs={12}>
@@ -265,11 +323,12 @@ const ShowData = () => {
             heading={'Payment Form Data '}
             rows={getPaymentFormData}
             columns={getPaymentFormOnlyKey}
-            deleteData={deleteDataFromPaymentForm}
             selectedID={selectedID}
             setSelectedID={setSelectedID}
             restart={restartThePaymentForm}
+            createData={createPaymentForm}
             updateData={updateDataPaymentForm}
+            deleteData={deleteDataFromPaymentForm}
           />
         </Grid>
         {/* <Grid item xs={12} md={6}>

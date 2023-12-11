@@ -17,16 +17,12 @@ import DatePickerWrapper from 'src/@core/styles/libs/react-datepicker'
 // ** Icons Imports
 import AccountOutline from 'mdi-material-ui/AccountOutline'
 import LockOpenOutline from 'mdi-material-ui/LockOpenOutline'
-import InformationOutline from 'mdi-material-ui/InformationOutline'
 
 // ** Demo Tabs Imports
 import TabInfo from 'src/views/account-settings/TabInfo'
 import TabAccount from 'src/views/account-settings/TabAccount'
 import TabSecurity from 'src/views/account-settings/TabSecurity'
 import TabNewUser from 'src/views/account-settings/TabNewUser'
-import Snackbar from '@mui/material/Snackbar'
-import Slide from '@mui/material/Slide'
-import MuiAlert from '@mui/material/Alert'
 
 import SnackbarComponent from 'src/layouts/components/SnackbarComponent'
 
