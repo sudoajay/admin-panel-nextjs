@@ -6,95 +6,77 @@ import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogContentText from '@mui/material/DialogContentText'
 import DialogTitle from '@mui/material/DialogTitle'
-import CardHeader from '@mui/material/CardHeader'
 import Grid from '@mui/material/Grid'
-import Box from '@mui/material/Box'
 
-import CardContent from '@mui/material/CardContent'
-import ContentSave from 'mdi-material-ui/ContentSave'
+export default function FormDialog({ open, setOpen, data, setData, selectedID, rows, columns, handleSave }) {
+  const [getSubHeading, setSubHeading] = React.useState(
+    'Here, you can edit your table item and then hit the save button.'
+  )
 
-export default function FormDialog({ open, setOpen }) {
-  const handleClickOpen = () => {
-    setOpen(true)
+  React.useEffect(() => {
+    // handleRequestSort(null, 'ID')
+    if (typeof rows.filter(item => item.ID === selectedID)[0] === 'undefined') {
+      const newObject = {}
+      for (const key of columns) {
+        newObject[key] = ''
+      }
+      newObject['ID'] = selectedID
+      newObject['Created'] = 'Now Time'
+
+      setData(newObject)
+      setSubHeading('Here, you can add new item and then hit the save button.')
+    } else {
+      setData(rows.filter(item => item.ID === selectedID)[0])
+      setSubHeading('Here, you can edit your table item and then hit the save button.')
+    }
+  }, [rows, selectedID, columns])
+
+  const handleChange = prop => event => {
+    setData({ ...data, [prop]: event.target.value })
   }
-
-  const handleClose = () => {
-    setOpen(false)
-  }
-
   return (
     <React.Fragment>
-      <Dialog open={open} onClose={handleClose}>
-        <DialogTitle>Subscribe</DialogTitle>
+      <Dialog open={open} onClose={() => setOpen(false)}>
+        <DialogTitle>Edit Box</DialogTitle>
         <DialogContent>
-          <DialogContentText>
-            To subscribe to this website, please enter your email address here. We will send updates occasionally.
-          </DialogContentText>
+          <DialogContentText> {getSubHeading}</DialogContentText>
           <form onSubmit={e => e.preventDefault()}>
             <Grid container spacing={5}>
               <Grid item xs={12} sx={{ marginTop: 2, marginBottom: 3 }}></Grid>
-              <Grid item xs={12}>
-                <TextField
-                  required
-                  fullWidth
-                  type='text'
-                  label='App Title'
-                  placeholder='Regime Fit'
-                  helperText='Type your brand name '
-                />
-              </Grid>
-
-              <Grid item xs={12}>
-                <TextField
-                  required
-                  fullWidth
-                  type='text'
-                  label='App Description'
-                  placeholder='Get Workout Plans!'
-                  helperText='Enter the app description for your SEO metadata.'
-                />
-              </Grid>
-
-              <Grid item xs={12}>
-                <TextField
-                  required
-                  multiline
-                  fullWidth
-                  type='text'
-                  label='App Keywords'
-                  placeholder='Workout Plan, Transform your life, strength,wellness,self-improvement'
-                  helperText='Enter the app Keywords for your SEO metadata.'
-                />
-              </Grid>
-
-              <Grid item xs={12}>
-                <TextField
-                  required
-                  fullWidth
-                  type='text'
-                  label='Main Title'
-                  placeholder='Get Workout Plans!'
-                  helperText="Enter the brand title you'd like to display on your app's  main homepage"
-                />
-              </Grid>
-
-              <Grid item xs={12}>
-                <TextField
-                  multiline
-                  required
-                  fullWidth
-                  type='text'
-                  label='Main Description'
-                  placeholder="Unleash your body's power. Transform your life through strength, wellness, and self-improvement. 💪"
-                  helperText="Enter the brand description you'd like to display on your app's main homepage"
-                />
-              </Grid>
+              {Array(typeof data !== 'undefined' ? Object.keys(data).length : columns.length)
+                .fill()
+                .map(function (v, i) {
+                  return (
+                    <Grid item xs={12}>
+                      {columns[i] == 'ID' || columns[i] == 'Created' ? (
+                        <TextField
+                          disabled
+                          fullWidth
+                          value={typeof data !== 'undefined' ? data[columns[i]] : ''}
+                          type='text'
+                          label={columns[i]}
+                          placeholder={'Enter' + columns[i]}
+                        />
+                      ) : (
+                        <TextField
+                          required
+                          fullWidth
+                          value={typeof data !== 'undefined' ? data[columns[i]] : ''}
+                          onChange={handleChange(columns[i])}
+                          type={columns[i] == 'Age' || columns[i] == 'Amount' ? 'number' : 'text'}
+                          label={columns[i]}
+                          placeholder={'Enter' + columns[i]}
+                        />
+                      )}
+                    </Grid>
+                  )
+                })}
             </Grid>
           </form>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleClose}>Cancel</Button>
-          <Button onClick={handleClose}>Subscribe</Button>
+          <Button onClick={() => setOpen(false)}>Cancel</Button>
+          <Button onClick={handleSave}>Save</Button>
         </DialogActions>
       </Dialog>
     </React.Fragment>

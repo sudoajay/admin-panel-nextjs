@@ -22,7 +22,7 @@ const DialogComponent = ({ openSave, setOpenSave, message, handleYes, Button1 = 
       onClose={() => setOpenSave(false)}
       aria-describedby='alert-dialog-slide-description'
     >
-      <DialogTitle>{'Confirmation'}</DialogTitle>
+      <DialogTitle>{'Confirmation !'}</DialogTitle>
       <DialogContent>
         <DialogContentText id='alert-dialog-slide-description'>{message}</DialogContentText>
       </DialogContent>

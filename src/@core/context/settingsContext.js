@@ -23,7 +23,6 @@ export const SettingsProvider = ({ children }) => {
   const [settings, setSettings] = useState({ ...initialSettings })
 
   const saveSettings = updatedSettings => {
-    console.log(' updatedSettings  ' + JSON.stringify(updatedSettings) + ' -- value  ' + getThemeMode().ThemeMode)
     setThemeMode(updatedSettings.mode)
     setSettings(updatedSettings)
   }

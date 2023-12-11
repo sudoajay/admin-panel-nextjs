@@ -226,18 +226,28 @@ EnhancedTableHead.propTypes = {
 }
 
 function EnhancedTableToolbar(props) {
-  const { numSelected, heading, rows, columns, selected, restart } = props
+  const { numSelected, heading, rows, columns, selected, restart, handleAddItem } = props
   const pages = ['Export All Data', 'Export All Heading', 'Export Selected Rows']
-  const settings = ['Profile', 'Account', 'Dashboard', 'Logout']
+  const settings = ['Add Item', 'Restart Sorting']
   const [anchorElNav, setAnchorElNav] = React.useState(null)
   const [anchorElUser, setAnchorElUser] = React.useState(null)
   const handleOpenNavMenu = event => {
     setAnchorElNav(event.currentTarget)
   }
   const handleOpenUserMenu = event => {
-    console.log(' clicked')
     setAnchorElUser(event.currentTarget)
-    restart()
+  }
+
+  const handleCloseUserMenu = () => {
+    setAnchorElUser(null)
+  }
+
+  const handleOnClickUserMenu = item => {
+    setAnchorElUser(null)
+    if (item == 1) restart()
+    else {
+      handleAddItem()
+    }
   }
 
   const handleCloseNavMenu = (value = 0) => {
@@ -276,10 +286,6 @@ function EnhancedTableToolbar(props) {
     pom.href = url
     pom.setAttribute('download', filename)
     pom.click()
-  }
-
-  const handleCloseUserMenu = () => {
-    setAnchorElUser(null)
   }
 
   return (
@@ -364,7 +370,7 @@ function EnhancedTableToolbar(props) {
             <FilterVariant sx={{ color: 'common.white' }} />
           </IconButton>
         </Tooltip>
-        {/* <Menu
+        <Menu
           sx={{ mt: '45px' }}
           id='menu-appbar'
           anchorEl={anchorElUser}
@@ -380,12 +386,12 @@ function EnhancedTableToolbar(props) {
           open={Boolean(anchorElUser)}
           onClose={handleCloseUserMenu}
         >
-          {settings.map(setting => (
-            <MenuItem key={setting} onClick={handleCloseUserMenu}>
+          {settings.map((setting, index) => (
+            <MenuItem key={setting} onClick={() => handleOnClickUserMenu(index)}>
               <Typography textAlign='center'>{setting}</Typography>
             </MenuItem>
           ))}
-        </Menu> */}
+        </Menu>
       </Box>
     </Toolbar>
   )
@@ -449,7 +455,16 @@ function EnhancedTableBottom(props) {
   )
 }
 
-export default function EnhancedTable({ heading, rows, columns, deleteData, setSelectedID, restart }) {
+export default function EnhancedTable({
+  heading,
+  rows,
+  columns,
+  deleteData,
+  selectedID,
+  setSelectedID,
+  restart,
+  updateData
+}) {
   const [order, setOrder] = React.useState('asc')
   const [orderBy, setOrderBy] = React.useState('ID')
   const [selected, setSelected] = React.useState([])
@@ -457,19 +472,26 @@ export default function EnhancedTable({ heading, rows, columns, deleteData, setS
   const [dense, setDense] = React.useState(false)
   const [rowsPerPage, setRowsPerPage] = React.useState(5)
 
-  const [openDelete, setOpenDelete] = useState(false)
+  const [editData, setEditData] = React.useState({})
 
+  const [openDelete, setOpenDelete] = useState(false)
   const [openSave, setOpenSave] = useState(false)
-  const [open, setOpen] = useState(false)
   const [openEditBox, setOpenEditBox] = useState(false)
 
-  const [showMessage, setMessage] = useState('Only PNG, JPG, JPEG, WebP. Supported')
+  const [open, setOpen] = useState(false)
   const [snackbarType, setSnackbarType] = useState('error')
+  const [showMessage, setMessage] = useState('')
 
   React.useEffect(() => {
     handleRequestSort(null, 'ID')
     // handleRequestSort(null, 'ID')
   }, [rows])
+
+  const handleAddItem = () => {
+    setSelectedID(parseInt(rows[rows.length - 1]['ID']) + 1)
+
+    setOpenEditBox(true)
+  }
 
   const handleRequestSort = (event, property) => {
     const isAsc = orderBy === property && order === 'asc'
@@ -532,7 +554,29 @@ export default function EnhancedTable({ heading, rows, columns, deleteData, setS
     [order, orderBy, page, rowsPerPage]
   )
 
-  const handleSaveAppInformation = () => {}
+  const handleSave = () => {
+    if (typeof editData !== 'undefined') {
+      Object.keys(editData).every(function (key, index) {
+        if (editData.hasOwnProperty(key)) {
+          if (editData[key] == '' && !(key == 'ID' || key == 'Created')) {
+            setSnackbarType('error')
+            setMessage('Please Provide The ' + key)
+            setOpen(true)
+            return false
+          }
+        }
+        if (index == Object.keys(editData).length - 1) {
+          setOpenEditBox(false)
+          setOpenSave(true)
+        } else return true
+      })
+    }
+  }
+
+  const handleSaveAppInformation = () => {
+    updateData(editData)
+    setOpenSave(false)
+  }
 
   const handleOpenDelete = () => {
     setOpenDelete(false)
@@ -542,10 +586,11 @@ export default function EnhancedTable({ heading, rows, columns, deleteData, setS
   return (
     <Box sx={{ width: '100%' }}>
       <SnackbarComponent open={open} setOpen={setOpen} snackbarType={snackbarType} showMessage={showMessage} />
+
       <DialogComponent
         openSave={openDelete}
         setOpenSave={setOpenDelete}
-        message={'Are you sure you want to delete this data from the list?'}
+        message={'Are you sure you want to delete this data from the table?'}
         handleYes={handleOpenDelete}
         Button1={'Cancel'}
         Button2={'Agree'}
@@ -553,10 +598,19 @@ export default function EnhancedTable({ heading, rows, columns, deleteData, setS
       <DialogComponent
         openSave={openSave}
         setOpenSave={setOpenSave}
-        message={' Are you sure you want to edit this item to the list? '}
+        message={'Are you sure you want to edit this item? '}
         handleYes={handleSaveAppInformation}
       />
-      <EditFormDialogBox open={openEditBox} setOpen={setOpenEditBox} />
+      <EditFormDialogBox
+        open={openEditBox}
+        setOpen={setOpenEditBox}
+        selectedID={selectedID}
+        rows={rows}
+        columns={columns}
+        handleSave={handleSave}
+        data={editData}
+        setData={setEditData}
+      />
       <Paper sx={{ width: '100%', mb: 2 }}>
         <EnhancedTableToolbar
           numSelected={selected.length}
@@ -565,6 +619,7 @@ export default function EnhancedTable({ heading, rows, columns, deleteData, setS
           columns={columns}
           selected={selected}
           restart={restart}
+          handleAddItem={handleAddItem}
         />
         <TableContainer>
           <Table sx={{ minWidth: 750 }} aria-labelledby='tableTitle' size={dense ? 'small' : 'medium'}>
@@ -615,7 +670,11 @@ export default function EnhancedTable({ heading, rows, columns, deleteData, setS
                       />
                     </TableCell>
 
-                    <TableCell align='left' component='th' id={labelId} scope='row' padding='normal'>
+                    {Object.keys(row).map(value => {
+                      return <TableCell align='left'>{row[value]}</TableCell>
+                    })}
+
+                    {/* <TableCell align='left' component='th' id={labelId} scope='row' padding='normal'>
                       {row.ID}
                     </TableCell>
                     <TableCell align='left'>{row.FullName}</TableCell>
@@ -627,7 +686,7 @@ export default function EnhancedTable({ heading, rows, columns, deleteData, setS
                     <TableCell align='left'>{row.Product}</TableCell>
                     <TableCell align='left'>{row.Amount}</TableCell>
                     <TableCell align='left'>{row.PromoCode}</TableCell>
-                    <TableCell align='left'>{row.Referralcode}</TableCell>
+                    <TableCell align='left'>{row.Referralcode}</TableCell> */}
                   </TableRow>
                 )
               })}
